@@ -25,18 +25,26 @@ module AzkabanScheduler
       @id = id
     end
 
+    def create(project_name, project_desc)
+      create_project_task(project_name, project_desc)
+    end
+
     def create_project(project)
+      create_project_task(project.name, project.description)
+    end
+
+    def create_project_task(name, description)
       response = @client.post('/manager', {
         'session.id' => @id,
         'action' => 'create',
-        'name' => project.name,
-        'description' => project.description,
+        'name' => name,
+        'description' => description,
       })
       response.error! unless response.kind_of?(Net::HTTPSuccess)
       result = JSON.parse(response.body)
       if result['status'] != 'success'
         error_message = result['message']
-        if error_message == "Active project with name #{project.name} already exists in db."
+        if error_message == "Active project with name #{name} already exists in db."
           raise ProjectExistsError, error_message
         elsif error_message == "Project names must start with a letter, followed by any number of letters, digits, '-' or '_'."
           raise InvalidProjectNameError, error_message
@@ -48,23 +56,34 @@ module AzkabanScheduler
       result
     end
 
+    def upload(project_name, file_name)
+      result = upload_project_task(project_name, file_name)
+      p result
+      result
+    end
+
     def upload_project(project)
+      result = upload_project_task(project.name, project.build)
+      project.id = result['projectId']
+      project.version = result['version']
+      result
+    end
+
+    def upload_project_task(name, file_io)
       response = @client.multipart_post('/manager', {
         'session.id' => @id,
         'ajax' => 'upload',
-        'project' => project.name,
-        'file' => UploadIO.new(project.build, 'application/zip', 'file.zip'),
+        'project' => name,
+        'file' => UploadIO.new(file_io, 'application/zip', 'file.zip'),
       })
       response.error! unless response.kind_of?(Net::HTTPSuccess)
       result = JSON.parse(response.body)
       if error_message = result['error']
-        if error_message == "Installation Failed. Project '#{project.name}' doesn't exist."
+        if error_message == "Installation Failed. Project '#{name}' doesn't exist."
           raise ProjectNotFoundError, error_message
         end
         raise AzkabanError, error_message
       end
-      project.id = result['projectId']
-      project.version = result['version']
       result
     end
 
