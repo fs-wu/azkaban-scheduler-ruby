@@ -42,6 +42,25 @@ session.remove_all_schedules(project.name)
 start_time = Time.now + 60
 session.post_schedule(project.id, project.name, flow_name, start_time, period: '12h')
 ```
+or 
+
+```ruby
+require 'azkaban_scheduler'
+
+client = AzkabanScheduler::Client.new('https://localhost:8443')
+session = AzkabanScheduler::Session.start(client, 'admin', ENV['AZKABAN_PASSWORD'])
+
+project = AzkabanScheduler::Project.new('Demo', 'A simple project to get you started')
+begin
+  session.create('Demo')
+rescue AzkabanScheduler::ProjectNotFoundError
+end
+session.upload('Demo', '/tmp/file.zip')
+
+session.remove_all_schedules(project.name)
+start_time = Time.now + 60
+session.post_schedule(project.id, project.name, flow_name, start_time, period: '12h')
+```
 
 ## Contributing
 
