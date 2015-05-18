@@ -58,7 +58,20 @@ start_time = Time.now + 60
 project_id = session.get_project_id(project_name)
 flow_name = session.fetch_project_flows(project_name)["flows"][0]["flowId"]
 option = {period: '30m',success_emails:'a@a.com',failure_emails:'a@a.com'}
-session.post_schedule(project_id, project.name, flow_name, start_time, option)
+session.post_schedule(project_id, project_name, flow_name, start_time, option)
+
+p session.fetch_project_flows(project_name)["flows"][0]["flowId"]
+p session.list_schedules
+flow_id = session.list_flow_ids(project_name)[0]
+session.execute_flow(project_name, flow_id)
+exs =  session.fetch_flow_executions(project_name, flow_id)
+execid = exs["executions"][0]["execId"]
+p session.fetch_exec_flow(execid)
+jobid = "my_job_id"
+result = session.fetch_exec_job_logs(execid, jobid)
+result["data"].split("\n").each do |r|
+    p r
+end
 ```
 
 ## Contributing
