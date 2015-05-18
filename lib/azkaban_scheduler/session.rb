@@ -241,6 +241,18 @@ module AzkabanScheduler
       result
     end
 
+    def fetch_flow_graph(project_name, flow)
+      response = @client.get('/manager', {
+        'session.id' => @id,
+        'ajax' => 'fetchflowgraph',
+        'project' => project_name,
+        'flow' => flow,
+      })
+      response.error! unless response.kind_of?(Net::HTTPSuccess)
+      result = JSON.parse(response.body)
+      result
+    end
+
     private
 
     def response_cookies(response)
