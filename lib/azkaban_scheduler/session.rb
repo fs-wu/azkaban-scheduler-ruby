@@ -197,6 +197,27 @@ module AzkabanScheduler
       nil
     end
 
+    def execute_flow(project_name, flow, options={})
+      response = @client.post('/executor', {
+        'ajax' => 'executeFlow',
+        'project' => project_name,
+        'flow' => flow,
+        'disabled' => options[:disabled] || '[]',
+        'period' => options[:period] || "1d",
+        'concurrentOption' => options[:concurrent_option] || 'skip',
+        'failureEmailsOverride' => (!!options[:failure_emails_override]).to_s,
+        'successEmailsOverride' => (!!options[:success_emails_override]).to_s,
+        'failureAction' => options[:failure_action] || 'finishCurrent',
+        'failureEmails' => Array(options[:failure_emails]).join(', '),
+        'successEmails' => Array(options[:success_emails]).join(', '),
+        'notifyFailureFirst' => (!!options[:notify_failure_first]).to_s,
+        'notifyFailureLast' => (!!options[:notify_failure_last]).to_s,
+      }, session_id_cookie)
+      response.error! unless response.kind_of?(Net::HTTPSuccess)
+      result = JSON.parse(response.body)
+      result
+    end
+
     def fetch_exec_flow(execid)
       response = @client.post('/executor', {
         'ajax' => 'fetchexecflow',
