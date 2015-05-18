@@ -197,6 +197,29 @@ module AzkabanScheduler
       nil
     end
 
+    def fetch_exec_flow(execid)
+      response = @client.post('/executor', {
+        'ajax' => 'fetchexecflow',
+        'execid' => execid,
+      }, session_id_cookie)
+      response.error! unless response.kind_of?(Net::HTTPSuccess)
+      result = JSON.parse(response.body)
+      result
+    end
+
+    def fetch_exec_job_logs(execid, jobid, offset=0, length=1000)
+      response = @client.post('/executor', {
+        'ajax' => 'fetchExecJobLogs',
+        'execid' => execid,
+        'jobId' => jobid,
+        'offset' => offset,
+        'length' => length,
+      }, session_id_cookie)
+      response.error! unless response.kind_of?(Net::HTTPSuccess)
+      result = JSON.parse(response.body)
+      result
+    end
+
     private
 
     def response_cookies(response)
